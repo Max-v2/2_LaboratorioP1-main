@@ -1,0 +1,21 @@
+Ingrese Opción
+[0=fin, 1=hash, 2=comparaPalabra, 3=mayorPalabraCant, 4=agregarOcurrencia]
+[5=inicializarPredictor, 6=entrenarPredictor, 7=insOrdAlternativas, 8=obtenerAlternativas]
+inicializarPredictor:
+Predictor inicializado
+Ingrese Opción
+[0=fin, 1=hash, 2=comparaPalabra, 3=mayorPalabraCant, 4=agregarOcurrencia]
+[5=inicializarPredictor, 6=entrenarPredictor, 7=insOrdAlternativas, 8=obtenerAlternativas]
+entrenarPredictor:Ingrese archivo
+Predictor entrenado
+        926: -(va,1)
+       8403: -(te,1)
+       8521: -(como,1)
+Ingrese Opción
+[0=fin, 1=hash, 2=comparaPalabra, 3=mayorPalabraCant, 4=agregarOcurrencia]
+[5=inicializarPredictor, 6=entrenarPredictor, 7=insOrdAlternativas, 8=obtenerAlternativas]
+obtenerAlternativas:Ingrese palabra
+-(como,1)
+Ingrese Opción
+[0=fin, 1=hash, 2=comparaPalabra, 3=mayorPalabraCant, 4=agregarOcurrencia]
+[5=inicializarPredictor, 6=entrenarPredictor, 7=insOrdAlternativas, 8=obtenerAlternativas]

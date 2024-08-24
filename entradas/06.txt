@@ -1,0 +1,12 @@
+5
+6
+entradas/archivos/arch1.txt
+5
+6
+entradas/archivos/arch2.txt
+5
+6
+entradas/archivos/arch3.txt
+6
+entradas/archivos/arch2.txt
+0

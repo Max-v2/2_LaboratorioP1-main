@@ -1,0 +1,12 @@
+5
+6
+entradas/archivos/quijote.txt
+8
+las
+8
+el
+8
+un
+8
+sancho
+0

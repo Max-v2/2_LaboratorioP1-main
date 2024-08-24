@@ -1,0 +1,236 @@
+program Tarea2;
+
+const
+  SEMILLA = 123; // Ejemplo de valor de la semilla
+  PASO = 7;      // Ejemplo de valor del paso
+  MAXHASH = 100; // Ejemplo de cota de la función de hash
+  MAXPAL = 50;   // Ejemplo de cota de la palabra
+  MAXALTS = 10;  // Ejemplo de cota de alternativas
+
+type
+  Natural = QWord;
+  Letra = 'a' .. 'z';
+  Palabra = record
+    cadena: array [1 .. MAXPAL] of Letra;
+    tope: 0 .. MAXPAL;
+  end;
+
+  Comparacion = (menor, igual, mayor);
+
+  Texto = ^NodoPal;
+  NodoPal = record
+    info: Palabra;
+    sig: Texto;
+  end;
+
+  PalabraCant = record
+    pal: Palabra;
+    cant: integer;
+  end;
+
+  Ocurrencias = ^Nodo;
+  Nodo = record
+    palc: PalabraCant;
+    sig: Ocurrencias;
+  end;
+
+  Predictor = array [1 .. MAXHASH] of Ocurrencias;
+
+  Alternativas = record
+    pals: array [1 .. MAXALTS] of PalabraCant;
+    tope: 0 .. MAXALTS;
+  end;
+
+function hash(semilla, paso, N: Natural; p: Palabra): Natural;
+begin
+  // Implementa la función hash aquí (esto es solo un ejemplo)
+  hash := (Length(p.cadena) * semilla + Length(p.cadena)) mod N;
+end;
+
+function comparaPalabra(p1, p2: Palabra): Comparacion;
+begin
+  // Implementa la comparación de palabras aquí (esto es solo un ejemplo)
+  if p1.tope < p2.tope then
+    comparaPalabra := menor
+  else if p1.tope > p2.tope then
+    comparaPalabra := mayor
+  else
+  begin
+    for i := 1 to p1.tope do
+    begin
+      if p1.cadena[i] < p2.cadena[i] then
+      begin
+        comparaPalabra := menor;
+        exit;
+      end
+      else if p1.cadena[i] > p2.cadena[i] then
+      begin
+        comparaPalabra := mayor;
+        exit;
+      end;
+    end;
+    comparaPalabra := igual;
+  end;
+end;
+
+function mayorPalabraCant(pc1, pc2: PalabraCant): boolean;
+begin
+  // Implementa la comparación de PalabraCant aquí (esto es solo un ejemplo)
+  if pc1.cant > pc2.cant then
+    mayorPalabraCant := true
+  else if (pc1.cant = pc2.cant) and (comparaPalabra(pc1.pal, pc2.pal) = mayor) then
+    mayorPalabraCant := true
+  else
+    mayorPalabraCant := false;
+end;
+
+procedure agregarOcurrencia(p: Palabra; var pals: Ocurrencias);
+var
+  actual, anterior, nuevaOcurrencia: Ocurrencias;
+begin
+  actual := pals;
+  anterior := nil;
+
+  while (actual <> nil) do
+  begin
+    if comparaPalabra(actual^.palc.pal, p) = igual then
+    begin
+      actual^.palc.cant := actual^.palc.cant + 1;
+      exit;
+    end;
+    anterior := actual;
+    actual := actual^.sig;
+  end;
+
+  // La palabra no existe en la lista de ocurrencias, la agregamos
+  New(nuevaOcurrencia);
+  nuevaOcurrencia^.palc.pal := p;
+  nuevaOcurrencia^.palc.cant := 1;
+  nuevaOcurrencia^.sig := nil;
+
+  if anterior = nil then
+    pals := nuevaOcurrencia
+  else
+    anterior^.sig := nuevaOcurrencia;
+end;
+
+procedure inicializarPredictor(var pred: Predictor);
+var
+  i: Natural;
+begin
+  for i := 1 to MAXHASH do
+    pred[i] := nil;
+end;
+
+procedure entrenarPredictor(txt: Texto; var pred: Predictor);
+var
+  palabra1, palabra2: Palabra;
+  actual: Texto;
+begin
+  actual := txt;
+
+  while (actual <> nil) and (actual^.sig <> nil) do
+  begin
+    palabra1 := actual^.info;
+    palabra2 := actual^.sig^.info;
+
+    // Calcula el código de hash de palabra1
+    codigoHash := hash(SEMILLA, PASO, MAXHASH, palabra1);
+
+    // Agrega palabra2 como una ocurrencia en la lista correspondiente
+    agregarOcurrencia(palabra2, pred[codigoHash]);
+
+    actual := actual^.sig;
+  end;
+end;
+
+procedure insOrdAlternativas(pc: PalabraCant; var alts: Alternativas);
+var
+  i: Integer;
+begin
+  if alts.tope < MAXALTS then
+  begin
+    alts.tope := alts.tope + 1;
+    alts.pals[alts.tope] := pc;
+
+    i := alts.tope;
+    while (i > 1) and mayorPalabraCant(alts.pals[i], alts.pals[i - 1]) do
+    begin
+      // Intercambia las palabras
+      temp := alts.pals[i];
+      alts.pals[i] := alts.pals[i - 1];
+      alts.pals[i - 1] := temp;
+      i := i - 1;
+    end;
+  end
+  else
+  begin
+    // Si alts está lleno, verifica si pc es mayor que el menor elemento en la lista
+    if mayorPalabraCant(pc, alts.pals[MAXALTS]) then
+    begin
+      alts.pals[MAXALTS] := pc;
+
+      i := MAXALTS;
+      while (i > 1) and mayorPalabraCant(alts.pals[i], alts.pals[i - 1]) do
+      begin
+        // Intercambia las palabras
+        temp := alts.pals[i];
+        alts.pals[i] := alts.pals[i - 1];
+        alts.pals[i - 1] := temp;
+        i := i - 1;
+      end;
+    end;
+  end;
+end;
+
+procedure obtenerAlternativas(p: Palabra; pred: Predictor; var alts: Alternativas);
+var
+  codigoHash: Natural;
+  actual: Ocurrencias;
+  pc: PalabraCant;
+begin
+  alts.tope := 0; // Inicializa el tope de alternativas
+
+  // Calcula el código de hash de la palabra
+  codigoHash := hash(SEMILLA, PASO, MAXHASH, p);
+
+  // Recorre la lista de ocurrencias correspondiente al código de hash
+  actual := pred[codigoHash];
+
+  while (actual <> nil) do
+  begin
+    pc := actual^.palc;
+    insOrdAlternativas(pc, alts);
+
+    actual := actual^.sig;
+  end;
+end;
+
+begin
+  // Aquí puedes escribir código para probar los subprogramas
+
+  // Ejemplo de uso de los subprogramas:
+
+  // Inicializa el predictor
+  var pred: Predictor;
+  inicializarPredictor(pred);
+
+  // Crea un texto de ejemplo
+  var texto: Texto;
+  New(texto);
+  texto^.info.tope := 5;
+  texto^.info.cadena := ('h', 'o', 'l', 'a', 's');
+  New(texto^.sig);
+  texto^.sig^.info.tope := 4;
+  texto^.sig^.info.cadena := ('a', 'm', 'i', 'g');
+  texto^.sig^.sig := nil;
+
+  // Entrena el predictor con el texto
+  entrenarPredictor(texto, pred);
+
+  // Obtiene alternativas para una palabra
+  var alts: Alternativas;
+  obtenerAlternativas(texto^.info, pred, alts);
+
+  // Aquí puedes imprimir las alternativas obtenidas
+end.
